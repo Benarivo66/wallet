@@ -1,0 +1,36 @@
+const bitcoin = require('bitcoinjs-lib');
+const ECPairFactory = require('ecpair').default;
+const ecc = require('tiny-secp256k1');
+const fs = require('fs');
+
+const ECPair = ECPairFactory(ecc);
+const network = bitcoin.networks.regtest; 
+
+async function createP2WPKHwallet() {
+    try {
+        const keyPair = ECPair.makeRandom({ network: network });
+        const { address } = bitcoin.payments.p2wpkh({
+          pubkey: keyPair.publicKey,
+          network: network,
+        });
+        const privateKey = keyPair.toWIF()
+
+        console.log(`| Public Address | ${address} |`)
+        console.log(`| Private Key | ${privateKey} |`)
+
+        const wallet = {
+            address: address,
+            privateKey: privateKey
+        };
+
+        const walletJSON = JSON.stringify(wallet, null, 4);
+
+        fs.writeFileSync('wallet.json', walletJSON);
+
+        console.log(`Wallet created and saved to wallet.json`);
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+createP2WPKHwallet();
